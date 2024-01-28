@@ -36,7 +36,7 @@ Managed with HacknPlan.
 
 Non-Functional Requirements
 Performance
--	Target a consistent 30FPS across supported hardware.
+-	Target a consistent 30FPS across supported hardware (Core i5 2320, NVIDIA GeForce GTX 555).
 -	Keep a short load time
 Security
 -	Anti-Cheat
