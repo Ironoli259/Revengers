@@ -86,7 +86,14 @@ public:
 	ARevengersCharacter();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivate))
-	bool isJumping = false;
+	bool bIsJumping = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivate))
+	bool bIsSprinting = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivate))
+	bool bIsAiming = false;
+	
 protected:
 
 	/** Called for movement input */
@@ -94,8 +101,17 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
 
+	/** Called for jumping input */
+
+	/** Called for Sprinting input */
+	void StartSprinting();
+	void StopSprinting();
+	
+	/** Called for aiming input */
+	void Aim();
+	void StopAiming();
+	
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

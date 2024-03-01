@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Interfaces/ITargetDevice.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -86,6 +87,10 @@ void ARevengersCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::Look);
+
+		// Sprinting
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::StartSprinting);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARevengersCharacter::StopSprinting);
 	}
 	else
 	{
@@ -97,7 +102,6 @@ void ARevengersCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
 	if (Controller != nullptr)
 	{
 		// find out which way is forward
@@ -127,4 +131,21 @@ void ARevengersCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(-(LookAxisVector.X));
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ARevengersCharacter::StartSprinting()
+{
+	if(bIsSprinting)
+		return;
+	this->bIsSprinting = true;
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	UE_LOG(LogTemp, Warning, TEXT("Start Sprinting"));
+	
+}
+
+void ARevengersCharacter::StopSprinting()
+{
+	this->bIsSprinting = false;
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	UE_LOG(LogTemp, Warning, TEXT("Stop Sprinting"));
 }
