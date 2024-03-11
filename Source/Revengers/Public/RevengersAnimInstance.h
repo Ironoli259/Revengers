@@ -17,15 +17,30 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	UPROPERTY(BlueprintReadOnly)
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	class ARevengersCharacter* RevengersCharacter;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	class UCharacterMovementComponent* RevengersChararcterMovement;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+
+	/** Speed of the player on the ground */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float GroundSpeed;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	bool IsFalling;
+	/** Whether or not the character is in the air */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsFalling;
+
+	/** Whether or not the character is accelerating */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsAccelerating;
+	
+	/** Whether or not the character is aiming the weapon */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming;
+
+	/** Whether or not the character is carrying a large weapon */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	bool bHasMediumWeaponEquipped;
 };

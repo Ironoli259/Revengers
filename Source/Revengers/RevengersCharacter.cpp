@@ -91,6 +91,23 @@ void ARevengersCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		// Sprinting
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::StartSprinting);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARevengersCharacter::StopSprinting);
+
+		// Aiming
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ARevengersCharacter::StartAiming);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ARevengersCharacter::StopAiming);
+
+		// Shooting
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::StartShooting);
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &ARevengersCharacter::StopShooting);
+
+		// Reload
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::StartReloading);
+
+		// Swap Weapon
+		EnhancedInputComponent->BindAction(SwapWeaponAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::StartSwappingWeapon);
+
+		// Ability
+		EnhancedInputComponent->BindAction(AbilityAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::ActivateAbility);
 	}
 	else
 	{
@@ -98,6 +115,7 @@ void ARevengersCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	}
 }
 
+/** Move Function */
 void ARevengersCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -120,6 +138,7 @@ void ARevengersCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
+/** Look Function */
 void ARevengersCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -133,19 +152,120 @@ void ARevengersCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+/** Function to Start Sprinting */
 void ARevengersCharacter::StartSprinting()
 {
-	if(bIsSprinting)
+	if(bIsSprinting || bIsAiming)
 		return;
 	this->bIsSprinting = true;
 	GetCharacterMovement()->MaxWalkSpeed = 600.f;
 	UE_LOG(LogTemp, Warning, TEXT("Start Sprinting"));
-	
 }
 
+/** Function to Stop Sprinting */
 void ARevengersCharacter::StopSprinting()
 {
 	this->bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 	UE_LOG(LogTemp, Warning, TEXT("Stop Sprinting"));
+}
+
+/** Function to Start Aiming */
+void ARevengersCharacter::StartAiming()
+{
+	if(this->bIsAiming)
+		return;
+	
+	this->bIsAiming = true;
+	UE_LOG(LogTemp, Warning, TEXT("Start Aiming"));
+
+	if(bIsSprinting)
+		StopSprinting();
+	
+	//TODO: Implement aiming logic
+}
+
+/** Function to Stop Aiming */
+void ARevengersCharacter::StopAiming()
+{
+	if(!this->bIsAiming)
+		return;
+	
+	this->bIsAiming = false;
+	UE_LOG(LogTemp, Warning, TEXT("Stop Aiming"));
+	//TODO: Implement aiming logic
+}
+
+/** Function to Start Shooting */
+void ARevengersCharacter::StartShooting()
+{
+	if(this->bIsShooting)
+		return;
+	
+	this->bIsShooting = true;
+	UE_LOG(LogTemp, Warning, TEXT("Start Shooting"));
+	//TODO: Implement shooting logic
+	//TODO: Implement reloading logic
+}
+
+/** Function to Stop Shooting */
+void ARevengersCharacter::StopShooting()
+{
+	if(!this->bIsShooting)
+		return;
+	
+	this->bIsShooting = false;
+	UE_LOG(LogTemp, Warning, TEXT("Stop Shooting"));
+	//TODO: Implement shooting logic
+}
+
+void ARevengersCharacter::Shoot()
+{
+	//TODO: Implement shooting logic
+}
+
+/** Functions to Reload */
+void ARevengersCharacter::StartReloading()
+{
+	if(this->bIsReloading)
+		return;
+	
+	this->bIsReloading = true;
+	UE_LOG(LogTemp, Warning, TEXT("Start Reloading"));
+	//TODO: Implement reloading logic
+}
+
+void ARevengersCharacter::CompletedReload()
+{
+	if(!this->bIsReloading)
+		return;
+	
+	this->bIsReloading = false;
+	//TODO: Implement reloading logic
+}
+
+/** Functions to Swap Weapon */
+void ARevengersCharacter::StartSwappingWeapon()
+{
+	if(this->bIsSwappingWeapon)
+		return;
+	
+	this->bIsSwappingWeapon = true;
+	UE_LOG(LogTemp, Warning, TEXT("Start Swapping Weapon"));
+	//TODO: Implement swapping weapon logic
+}
+
+void ARevengersCharacter::CompletedSwapWeapon()
+{
+	if(!this->bIsSwappingWeapon)
+		return;
+	
+	this->bIsSwappingWeapon = false;
+	//TODO: Implement swapping weapon logic
+}
+
+/** Functions for Ability */
+void ARevengersCharacter::ActivateAbility()
+{
+	//TODO: Implement ability logic
 }

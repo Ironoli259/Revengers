@@ -20,6 +20,7 @@ class ARevengersCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -81,18 +82,36 @@ class ARevengersCharacter : public ACharacter
 	UInputAction* PauseAction;
 
 	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	bool bIsJumping = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	bool bIsSprinting = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	bool bHasMediumWeaponEquipped = false;
+	
+	bool bIsShooting = false;
+	bool bIsReloading = false;
+	bool bIsSwappingWeapon = false;
+	
 	
 public:
 	ARevengersCharacter();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivate))
-	bool bIsJumping = false;
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivate))
-	bool bIsSprinting = false;
+	// Getters
+	bool GetIsAiming() const { return bIsAiming; }
+	bool GetHasMediumWeaponEquipped() const { return bHasMediumWeaponEquipped; }
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivate))
-	bool bIsAiming = false;
 	
 protected:
 
@@ -109,20 +128,29 @@ protected:
 	void StopSprinting();
 	
 	/** Called for aiming input */
-	void Aim();
+	void StartAiming();
 	void StopAiming();
+
+	/** Called for shooting input */
+	void StartShooting();
+	void StopShooting();
+	void Shoot();
+
+	/** Called for reloading input */
+	void StartReloading();
+	void CompletedReload();
+
+	/** Called for swapping weapon input */
+	void StartSwappingWeapon();
+	void CompletedSwapWeapon();
+
+	/** Called for ability input */
+	void ActivateAbility();
 	
-protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// To add mapping context
 	virtual void BeginPlay();
-
-public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
 };
-
