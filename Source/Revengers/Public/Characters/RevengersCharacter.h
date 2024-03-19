@@ -98,7 +98,15 @@ private:
 	bool bIsShooting = false;
 	bool bIsReloading = false;
 	bool bIsSwappingWeapon = false;
-	
+
+	void Shoot(const USkeletalMeshSocket* PistolBarrelSocket);
+
+	/* Pistol gunshot cue */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class USoundCue* FireSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class UParticleSystem* MuzzleFlash;
 	
 public:
 	ARevengersCharacter();
@@ -110,6 +118,7 @@ public:
 
 	// Getters
 	bool GetIsAiming() const { return bIsAiming; }
+	bool GetIsShooting() const { return bIsShooting; }
 	bool GetHasMediumWeaponEquipped() const { return bHasMediumWeaponEquipped; }
 
 	

@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "RevengersCharacter.h"
+#include "Characters/RevengersCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,7 +10,11 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Interfaces/ITargetDevice.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -43,7 +47,7 @@ ARevengersCharacter::ARevengersCharacter()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
@@ -203,9 +207,52 @@ void ARevengersCharacter::StartShooting()
 		return;
 	
 	this->bIsShooting = true;
+
+	if(FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
+
+	const USkeletalMeshSocket* PistolBarrelSocket = GetMesh()->GetSocketByName("PistolBarrelSocket");
+	if(PistolBarrelSocket)
+	{
+		FTimerHandle Handle;
+		GetWorld()->GetTimerManager().SetTimer(Handle, [this, PistolBarrelSocket]()
+		{
+			Shoot(PistolBarrelSocket);
+		}, 0.1f, false);
+
+		
+	}
+	
 	UE_LOG(LogTemp, Warning, TEXT("Start Shooting"));
-	//TODO: Implement shooting logic
+	//TODO: Implement different weapon logic
 	//TODO: Implement reloading logic
+}
+
+/* Function for muzzle flash */
+void ARevengersCharacter::Shoot(const USkeletalMeshSocket* PistolBarrelSocket)
+{
+	const FTransform SocketTransform = PistolBarrelSocket->GetSocketTransform(GetMesh());
+
+	if(MuzzleFlash)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+	}
+
+	FHitResult FireHit;
+	const FVector Start{ SocketTransform.GetLocation() };
+	const FQuat Rotation{ SocketTransform.GetRotation() };
+	const FVector RotationAxis{ Rotation.GetAxisZ() };
+	const FVector End{Start + RotationAxis * 50000.f };
+
+	GetWorld()->LineTraceSingleByChannel(FireHit, Start, End, ECC_Visibility);
+
+	if(FireHit.bBlockingHit)
+	{
+		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.5f);
+		DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 5.f);
+	}
 }
 
 /** Function to Stop Shooting */

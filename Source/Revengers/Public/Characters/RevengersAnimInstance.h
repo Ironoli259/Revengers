@@ -40,6 +40,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	bool bIsAiming;
 
+	/** Whether or not the character is aiming the weapon */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	bool bIsShooting;
+
 	/** Whether or not the character is carrying a large weapon */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	bool bHasMediumWeaponEquipped;

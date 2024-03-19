@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "RevengersAnimInstance.h"
-#include "../RevengersCharacter.h"
+#include "Characters/RevengersAnimInstance.h"
+#include "Characters/RevengersCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -60,6 +60,9 @@ void URevengersAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		// Is the character aiming?
 		this->bIsAiming = RevengersCharacter->GetIsAiming();
+
+		// Is the character shooting?
+		this->bIsShooting = RevengersCharacter->GetIsShooting();
 
 		// Does the character have a medium weapon equipped?
 		this->bHasMediumWeaponEquipped = RevengersCharacter->GetHasMediumWeaponEquipped();

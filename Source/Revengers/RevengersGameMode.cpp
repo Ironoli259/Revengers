@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RevengersGameMode.h"
-#include "RevengersCharacter.h"
+#include "Characters/RevengersCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 ARevengersGameMode::ARevengersGameMode()
