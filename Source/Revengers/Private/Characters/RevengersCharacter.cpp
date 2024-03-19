@@ -32,7 +32,7 @@ ARevengersCharacter::ARevengersCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -49,6 +49,7 @@ ARevengersCharacter::ARevengersCharacter()
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->SocketOffset = FVector(0.f, 50.f, 50.f);
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -240,6 +241,42 @@ void ARevengersCharacter::Shoot(const USkeletalMeshSocket* PistolBarrelSocket)
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
 	}
 
+	
+	FVector2d ViewportSize;
+	if(GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	FVector2d CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+	CrosshairLocation.Y -= 50.f;
+	FVector CrosshairWorldPosition;
+	FVector CrosshairWorldDirection;
+
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection);
+
+	if(bScreenToWorld)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Crosshair World Position: %s"), *CrosshairWorldPosition.ToString()));
+		FHitResult ScreenTraceHit;
+		const FVector Start{CrosshairWorldDirection};
+		const FVector End{CrosshairWorldPosition + CrosshairWorldDirection * 50000.f};
+
+		FVector BeamEndPoint{End};
+		GetWorld()->LineTraceSingleByChannel(ScreenTraceHit, Start, End , ECC_Visibility);
+		if(ScreenTraceHit.bBlockingHit)
+		{
+			BeamEndPoint = ScreenTraceHit.Location;
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.5f);
+			DrawDebugPoint(GetWorld(), ScreenTraceHit.Location, 5.f, FColor::Red, false, 5.f);
+			if(ImpactParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ScreenTraceHit.Location);
+			}
+		}
+	}
+	
+	/*
 	FHitResult FireHit;
 	const FVector Start{ SocketTransform.GetLocation() };
 	const FQuat Rotation{ SocketTransform.GetRotation() };
@@ -252,7 +289,13 @@ void ARevengersCharacter::Shoot(const USkeletalMeshSocket* PistolBarrelSocket)
 	{
 		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.5f);
 		DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 5.f);
+
+		if(ImpactParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, FireHit.Location);
+		}
 	}
+	*/
 }
 
 /** Function to Stop Shooting */

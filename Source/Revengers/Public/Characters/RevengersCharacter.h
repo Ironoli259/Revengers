@@ -105,8 +105,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	class USoundCue* FireSound;
 
+	/** Muzzle Flash **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	class UParticleSystem* MuzzleFlash;
+
+	/** Particles spawned upon bullet impact **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* ImpactParticles;
+	
 	
 public:
 	ARevengersCharacter();
