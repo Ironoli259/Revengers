@@ -25,38 +25,23 @@ void URevengersAnimInstance::NativeInitializeAnimation()
 // Update the animation instance - UPDATE
 void URevengersAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
-	if(RevengersCharacter == nullptr)
-	{
-		RevengersCharacter = Cast<ARevengersCharacter>(TryGetPawnOwner());
-		if(RevengersCharacter)
-		{
-			RevengersChararcterMovement = RevengersCharacter->GetCharacterMovement();
-		}
-		else
-		{
-			return;
-		}
-	}
-	
 	Super::NativeUpdateAnimation(DeltaSeconds);
+	
+	if(RevengersCharacter == nullptr)
+		RevengersCharacter = Cast<ARevengersCharacter>(TryGetPawnOwner());
+
+	if(RevengersCharacter == nullptr) return;
 
 	if(RevengersChararcterMovement)
 	{
 		// Get the lateral speed of the character from velocity
-		this->GroundSpeed = UKismetMathLibrary::VSizeXY(RevengersCharacter->GetVelocity());
+		this->Speed = UKismetMathLibrary::VSizeXY(RevengersCharacter->GetVelocity());
 
 		// Is the character in the air?
-		this->bIsFalling = RevengersChararcterMovement->IsFalling();
+		this->bIsInAir = RevengersChararcterMovement->IsFalling();
 
 		// Is the character accelerating?
-		if(RevengersChararcterMovement->GetCurrentAcceleration().Size() > 0.0f)
-		{
-			this->bIsAccelerating = true;
-		}
-		else
-		{
-			this->bIsAccelerating = false;
-		}
+		this->bIsAccelerating = RevengersChararcterMovement->GetCurrentAcceleration().Size() > 0.0f ? true : false;
 
 		// Is the character aiming?
 		this->bIsAiming = RevengersCharacter->GetIsAiming();

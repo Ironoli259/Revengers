@@ -78,4 +78,7 @@ Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
+#PackagedGame
+Packages/*
+
 MakeIssues/settings.williames

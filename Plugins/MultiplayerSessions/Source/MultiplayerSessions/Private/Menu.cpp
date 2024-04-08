@@ -14,7 +14,7 @@
  */
 void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
 {
-	this->PathToLobby = FString::Printf(TEXT("%s?listen?"), *LobbyPath);
+	this->PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
 	this->NumPublicConnections = NumberOfPublicConnections;
 	this->MatchType = TypeOfMatch;
 	AddToViewport();
@@ -69,6 +69,9 @@ bool UMenu::Initialize()
 	return true;
 }
 
+/**
+ * This function is called when the Menu is destructed
+ */
 void UMenu::NativeDestruct()
 {
 	MenuTearDown();
@@ -128,6 +131,10 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SearchResul
 	}
 }
 
+/**
+ * This function is called when the JoinSession function is called in the MultiplayerSessionsSubsystem
+ * @param Result The result of the join session
+ */
 void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 {
 	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
@@ -157,6 +164,10 @@ void UMenu::OnDestroySession(bool bWasSuccessful)
 {
 }
 
+/**
+ * This function is called when the StartSession function is called in the MultiplayerSessionsSubsystem
+ * @param bWasSuccessful Whether the session was started successfully or not
+ */
 void UMenu::OnStartSession(bool bWasSuccessful)
 {
 	if(!GEngine) return;
@@ -167,6 +178,9 @@ void UMenu::OnStartSession(bool bWasSuccessful)
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Session Start Failed"));
 }
 
+/**
+ * This function is called when the HostButton is clicked
+ */
 void UMenu::HostButtonClicked()
 {
 	HostButton->SetIsEnabled(false);
@@ -176,6 +190,9 @@ void UMenu::HostButtonClicked()
 	}
 }
 
+/**
+ * This function is called when the JoinButton is clicked
+ */
 void UMenu::JoinButtonClicked()
 {
 	JoinButton->SetIsEnabled(false);
@@ -185,6 +202,9 @@ void UMenu::JoinButtonClicked()
 	}
 }
 
+/**
+ * This function is called when the Menu is torn down
+ */
 void UMenu::MenuTearDown()
 {
 	RemoveFromParent();
