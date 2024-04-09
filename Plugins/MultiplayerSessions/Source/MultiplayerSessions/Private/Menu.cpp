@@ -2,28 +2,25 @@
 
 
 #include "Menu.h"
-#include "MultiplayerSessionsSubsystem.h"
 #include "Components/Button.h"
+#include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 
-/**
- * This function is called when the Menu is setup
- * @param NumberOfPublicConnections The number of public connections the session will have
- * @param TypeOfMatch The type of match the session will be
- */
 void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
 {
-	this->PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
-	this->NumPublicConnections = NumberOfPublicConnections;
-	this->MatchType = TypeOfMatch;
+	PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
+	NumPublicConnections = NumberOfPublicConnections;
+	MatchType = TypeOfMatch;
 	AddToViewport();
 	SetVisibility(ESlateVisibility::Visible);
-	SetIsFocusable(true);
+	bIsFocusable = true;
 
-	if(UWorld* World = GetWorld())
+	UWorld* World = GetWorld();
+	if (World)
 	{
-		if(APlayerController* PlayerController = World->GetFirstPlayerController())
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		if (PlayerController)
 		{
 			FInputModeUIOnly InputModeData;
 			InputModeData.SetWidgetToFocus(TakeWidget());
@@ -33,12 +30,13 @@ void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FStr
 		}
 	}
 
-	if(UGameInstance* GameInstance = GetGameInstance())
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance)
 	{
 		MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 	}
 
-	if(MultiplayerSessionsSubsystem)
+	if (MultiplayerSessionsSubsystem)
 	{
 		MultiplayerSessionsSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
 		MultiplayerSessionsSubsystem->MultiplayerOnFindSessionsComplete.AddUObject(this, &ThisClass::OnFindSessions);
@@ -48,115 +46,96 @@ void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FStr
 	}
 }
 
-/**
- * This function is called when the Menu is initialized
- * @return Whether the initialization was successful or not
- */
 bool UMenu::Initialize()
 {
-	if(!Super::Initialize())
+	if (!Super::Initialize())
 	{
 		return false;
 	}
-	
-	if(HostButton)
-		HostButton->OnClicked.AddDynamic(this, &UMenu::HostButtonClicked);
-	
-	if(JoinButton)
-		JoinButton->OnClicked.AddDynamic(this, &UMenu::JoinButtonClicked);
-	
-	
+
+	if (HostButton)
+	{
+		HostButton->OnClicked.AddDynamic(this, &ThisClass::HostButtonClicked);
+	}
+	if (JoinButton)
+	{
+		JoinButton->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
+	}
+
 	return true;
 }
 
-/**
- * This function is called when the Menu is destructed
- */
-void UMenu::NativeDestruct()
+void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {
 	MenuTearDown();
-	
-	Super::NativeDestruct();
+	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
 }
 
-/**
- * This function is called when the CreateSession function is called in the MultiplayerSessionsSubsystem
- * @param bWasSuccessful Whether the session was created successfully or not
- */
 void UMenu::OnCreateSession(bool bWasSuccessful)
 {
-	if(!bWasSuccessful)
+	if (bWasSuccessful)
 	{
-		if(GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, TEXT("Failed to Create Session!"));
-		HostButton->SetIsEnabled(true);
-		return;
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			World->ServerTravel(PathToLobby);
+		}
 	}
-	
-	if(GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, TEXT("Session Created Successfully!"));
-
-	if(UWorld* World = GetWorld())
+	else
 	{
-		World->ServerTravel(PathToLobby);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Red,
+				FString(TEXT("Failed to create session!"))
+			);
+		}
+		HostButton->SetIsEnabled(true);
 	}
 }
 
-/**
- * This function is called when the FindSessions function is called in the MultiplayerSessionsSubsystem
- * @param SearchResults The results of the search
- * @param bWasSuccessful Whether the search was successful or not
- */
-void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SearchResults, bool bWasSuccessful)
+void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful)
 {
-	if(MultiplayerSessionsSubsystem == nullptr)
+	if (MultiplayerSessionsSubsystem == nullptr)
+	{
 		return;
-	
-	for (auto Result : SearchResults)
+	}
+
+	for (auto Result : SessionResults)
 	{
 		FString SettingsValue;
 		Result.Session.SessionSettings.Get(FName("MatchType"), SettingsValue);
-		if(SettingsValue == MatchType)
+		if (SettingsValue == MatchType)
 		{
-			if(GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, TEXT("Found a session with the correct match type!"));
 			MultiplayerSessionsSubsystem->JoinSession(Result);
 			return;
 		}
 	}
-
-	if(!bWasSuccessful || SearchResults.Num() == 0)
+	if (!bWasSuccessful || SessionResults.Num() == 0)
 	{
 		JoinButton->SetIsEnabled(true);
 	}
 }
 
-/**
- * This function is called when the JoinSession function is called in the MultiplayerSessionsSubsystem
- * @param Result The result of the join session
- */
 void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 {
 	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
-	if(Subsystem)
-		return;
-	
-	IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
-	if(SessionInterface.IsValid())
+	if (Subsystem)
 	{
-		FString Address;
-		SessionInterface->GetResolvedConnectString(NAME_GameSession, Address);
-
-		APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
-		if(PlayerController)
+		IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
+		if (SessionInterface.IsValid())
 		{
-			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
-		}
-	}
+			FString Address;
+			SessionInterface->GetResolvedConnectString(NAME_GameSession, Address);
 
-	if(Result != EOnJoinSessionCompleteResult::Success)
-	{
-		JoinButton->SetIsEnabled(true);
+			APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
+			if (PlayerController)
+			{
+				PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
+			}
+		}
 	}
 }
 
@@ -164,55 +143,38 @@ void UMenu::OnDestroySession(bool bWasSuccessful)
 {
 }
 
-/**
- * This function is called when the StartSession function is called in the MultiplayerSessionsSubsystem
- * @param bWasSuccessful Whether the session was started successfully or not
- */
 void UMenu::OnStartSession(bool bWasSuccessful)
 {
-	if(!GEngine) return;
-    
-	if(bWasSuccessful)
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Session Started Successfully"));
-	else
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Session Start Failed"));
 }
 
-/**
- * This function is called when the HostButton is clicked
- */
 void UMenu::HostButtonClicked()
 {
 	HostButton->SetIsEnabled(false);
-	if(MultiplayerSessionsSubsystem)
+	if (MultiplayerSessionsSubsystem)
 	{
 		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
 	}
 }
 
-/**
- * This function is called when the JoinButton is clicked
- */
 void UMenu::JoinButtonClicked()
 {
 	JoinButton->SetIsEnabled(false);
-	if(MultiplayerSessionsSubsystem)
+	if (MultiplayerSessionsSubsystem)
 	{
 		MultiplayerSessionsSubsystem->FindSessions(10000);
 	}
 }
 
-/**
- * This function is called when the Menu is torn down
- */
 void UMenu::MenuTearDown()
 {
 	RemoveFromParent();
-	if(UWorld* World = GetWorld())
+	UWorld* World = GetWorld();
+	if (World)
 	{
-		if(APlayerController* PlayerController = World->GetFirstPlayerController())
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		if (PlayerController)
 		{
-			const FInputModeGameOnly InputModeData;
+			FInputModeGameOnly InputModeData;
 			PlayerController->SetInputMode(InputModeData);
 			PlayerController->SetShowMouseCursor(false);
 		}

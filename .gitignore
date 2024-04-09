@@ -80,5 +80,6 @@ DerivedDataCache/*
 
 #PackagedGame
 Packages/*
+Builds/*
 
 MakeIssues/settings.williames
