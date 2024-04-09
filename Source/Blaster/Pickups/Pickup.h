@@ -17,6 +17,7 @@ public:
 	virtual void Destroyed() override;
 protected:
 	virtual void BeginPlay() override;
+	APickup* Clone(APickup* PickupToClone);
 
 	UFUNCTION()
 	virtual void OnSphereOverlap(

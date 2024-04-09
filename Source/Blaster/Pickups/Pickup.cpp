@@ -50,6 +50,36 @@ void APickup::BeginPlay()
 	}
 }
 
+APickup* APickup::Clone(APickup* PickupToClone)
+{
+	if (PickupToClone == nullptr)
+	{
+		return nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return nullptr;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	APickup* ClonedPickup = World->SpawnActor<APickup>(PickupToClone->GetClass(), PickupToClone->GetActorLocation(), PickupToClone->GetActorRotation(), SpawnParams);
+
+	if (ClonedPickup != nullptr)
+	{
+		ClonedPickup->SetActorScale3D(PickupToClone->GetActorScale3D());
+		ClonedPickup->SetActorHiddenInGame(PickupToClone->IsHidden());
+		ClonedPickup->SetActorEnableCollision(PickupToClone->GetActorEnableCollision());
+		ClonedPickup->SetActorTickEnabled(PickupToClone->IsActorTickEnabled());
+		//Add other properties if needed
+	}
+
+	return ClonedPickup;
+}
+
 void APickup::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 

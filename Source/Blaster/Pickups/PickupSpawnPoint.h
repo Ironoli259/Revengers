@@ -18,6 +18,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//Factory method to create a pickup
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<class APickup>> PickupClasses;
 

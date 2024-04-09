@@ -70,6 +70,7 @@ protected:
 	// Poll for any relelvant classes and initialize our HUD
 	void PollInit();
 	void RotateInPlace(float DeltaTime);
+	
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
