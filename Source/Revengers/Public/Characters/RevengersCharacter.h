@@ -20,6 +20,13 @@ class ARevengersCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+public:
+	ARevengersCharacter();
+
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -76,7 +83,7 @@ private:
 	/** Interact Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
-
+	
 	/** Pause Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* PauseAction;
@@ -115,60 +122,42 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverheadWidget;
-	
-	
-public:
-	ARevengersCharacter();
 
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	class AWeapon* OverlappingWeapon;
+
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	
+protected:
+	virtual void BeginPlay() override;
+	
+	/** Inputs */
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void StartSprinting();
+	void StopSprinting();
+	void StartAiming();
+	void StopAiming();
+	void StartShooting();
+	void StopShooting();
+	void Shoot();
+	void StartReloading();
+	void CompletedReload();
+	void StartSwappingWeapon();
+	void CompletedSwapWeapon();
+	void ActivateAbility();
+
+public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	void SetOverlappingWeapon(AWeapon* Weapon);
+
 	// Getters
 	bool GetIsAiming() const { return bIsAiming; }
 	bool GetIsShooting() const { return bIsShooting; }
 	bool GetHasMediumWeaponEquipped() const { return bHasMediumWeaponEquipped; }
-
-	
-protected:
-
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-
-	/** Called for jumping input */
-
-	/** Called for Sprinting input */
-	void StartSprinting();
-	void StopSprinting();
-	
-	/** Called for aiming input */
-	void StartAiming();
-	void StopAiming();
-
-	/** Called for shooting input */
-	void StartShooting();
-	void StopShooting();
-	void Shoot();
-
-	/** Called for reloading input */
-	void StartReloading();
-	void CompletedReload();
-
-	/** Called for swapping weapon input */
-	void StartSwappingWeapon();
-	void CompletedSwapWeapon();
-
-	/** Called for ability input */
-	void ActivateAbility();
-	
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	// To add mapping context
-	virtual void BeginPlay();
-	
 };

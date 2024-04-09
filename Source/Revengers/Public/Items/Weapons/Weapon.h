@@ -20,21 +20,35 @@ enum class EWeaponState : uint8
 };
 
 UCLASS()
-class REVENGERS_API AWeapon : public AItem
+class REVENGERS_API AWeapon : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
+	void ShowPickupWidget(bool bShowWidget);
 
 protected:
-	
-	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
-	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 private:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	USkeletalMeshComponent* WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	USphereComponent* AreaSphere;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	class UWidgetComponent* PickupWidget;
 	
 };

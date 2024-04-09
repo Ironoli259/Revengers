@@ -2,43 +2,79 @@
 
 
 #include "Items/Weapons/Weapon.h"
-
+#include "Components/SphereComponent.h"
 #include "Characters/RevengersCharacter.h"
+#include "Components/WidgetComponent.h"
 
 AWeapon::AWeapon()
 {
-	PrimaryActorTick.bCanEverTick = true;
-	ItemMesh->SetCollisionResponseToAllChannels(ECR_Block);
-	ItemMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+
+	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMesh->SetupAttachment(RootComponent);
+	SetRootComponent(WeaponMesh); 
+	
+	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
+	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
+	AreaSphere->SetupAttachment(RootComponent);
+	AreaSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
+	PickupWidget->SetupAttachment(RootComponent);
+}
+
+void AWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if(HasAuthority())
+	{
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
+	}
+
+	if(PickupWidget)
+	{
+		PickupWidget->SetVisibility(false);
+	}
 }
 
 void AWeapon::Tick(float DeltaTime)
 {
-	
+	Super::Tick(DeltaTime);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::OnSphereOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-
 	ARevengersCharacter* RevengersCharacter = Cast<ARevengersCharacter>(OtherActor);
 	if(RevengersCharacter)
 	{
-		if(this->WeaponState == EWeaponState::EWS_Equipped)
-			return;
-		
-		//Attach the weapon to the character
-		FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
-		ItemMesh->AttachToComponent(RevengersCharacter->GetMesh(), TransformRules, FName("RightHandSocket"));
-		this->WeaponState = EWeaponState::EWS_Equipped;
-		
+		RevengersCharacter->SetOverlappingWeapon(this);
 	}
 }
 
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	Super::OnSphereEndOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+	ARevengersCharacter* RevengersCharacter = Cast<ARevengersCharacter>(OtherActor);
+	if(RevengersCharacter)
+	{
+		RevengersCharacter->SetOverlappingWeapon(nullptr);
+	}
+}
+
+void AWeapon::ShowPickupWidget(bool bShowWidget)
+{
+	if(PickupWidget)
+	{
+		PickupWidget->SetVisibility(bShowWidget);
+	}
 }

@@ -16,6 +16,9 @@
 #include "Sound/SoundCue.h"
 #include "DrawDebugHelpers.h"
 #include "Components/WidgetComponent.h"
+#include "Items/Weapons/Weapon.h"
+#include "Net/UnrealNetwork.h"
+
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -40,7 +43,7 @@ ARevengersCharacter::ARevengersCharacter()
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 550.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
@@ -64,6 +67,14 @@ ARevengersCharacter::ARevengersCharacter()
 	OverheadWidget->SetupAttachment(RootComponent);
 }
 
+void ARevengersCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ARevengersCharacter, OverlappingWeapon, COND_OwnerOnly);
+}
+
+
 void ARevengersCharacter::BeginPlay()
 {
 	// Call the base class  
@@ -76,6 +87,39 @@ void ARevengersCharacter::BeginPlay()
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
+	}
+}
+
+void ARevengersCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	
+}
+
+void ARevengersCharacter::SetOverlappingWeapon(AWeapon* Weapon)
+{
+	if(OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickupWidget(false);
+	}
+	
+	OverlappingWeapon = Weapon;
+	if(IsLocallyControlled())
+	{
+		if(OverlappingWeapon)
+			OverlappingWeapon->ShowPickupWidget(true);
+		
+	}
+}
+
+void ARevengersCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
+{
+	if(OverlappingWeapon)
+		OverlappingWeapon->ShowPickupWidget(true);
+
+	if(LastWeapon)
+	{
+		LastWeapon->ShowPickupWidget(false);
 	}
 }
 
@@ -98,7 +142,7 @@ void ARevengersCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::Look);
 
 		// Sprinting
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ARevengersCharacter::StartSprinting);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARevengersCharacter::StartSprinting);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARevengersCharacter::StopSprinting);
 
 		// Aiming
@@ -167,7 +211,7 @@ void ARevengersCharacter::StartSprinting()
 	if(bIsSprinting || bIsAiming)
 		return;
 	this->bIsSprinting = true;
-	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	GetCharacterMovement()->MaxWalkSpeed = 800.f;
 	UE_LOG(LogTemp, Warning, TEXT("Start Sprinting"));
 }
 
@@ -175,7 +219,7 @@ void ARevengersCharacter::StartSprinting()
 void ARevengersCharacter::StopSprinting()
 {
 	this->bIsSprinting = false;
-	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	UE_LOG(LogTemp, Warning, TEXT("Stop Sprinting"));
 }
 
